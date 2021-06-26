@@ -4,10 +4,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:FluentNzxt"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:view="using:FluentNzxt.View"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+          x:Name="RootGrid" Background="#F3F3F3">
+        <Border Background="#F9F9F9" BorderBrush="#E5E5E5" BorderThickness="1"
+                CornerRadius="8,8,0,0" Padding="56,56,24,0" Margin="40,40,0,0">
+
+            <view:DeviceView x:Name="DeviceView" Width="600" HorizontalAlignment="Left"
+                             Margin="0,24,0,0"/>
+        </Border>
+    </Grid>
 </Window>

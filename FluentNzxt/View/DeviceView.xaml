@@ -3,33 +3,78 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:FluentNzxt.View"
+    xmlns:viewModel="using:FluentNzxt.ViewModel"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <UniformGridLayout x:Name="LEDLayoutGrid" MinRowSpacing="2" MinColumnSpacing="2"/>
 
-    <Grid>
+        <DataTemplate x:Key="AccessoryListViewTemplate" x:DataType="viewModel:Hue2AccessoryViewModel">
+            <StackPanel Orientation="Vertical" Margin="0,8,0,8" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE964;"/>
+                    <TextBlock Text="{Binding Name}" Margin="8,0,0,0"/>
+                </StackPanel>
+                <ItemsRepeater ItemsSource="{Binding LEDS}"
+                               Layout="{StaticResource LEDLayoutGrid}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="16" Height="16" Fill="{Binding Converter={StaticResource ColorToSolidColorBrushConverter}}" />
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid BorderThickness="1"
+          BorderBrush="{ThemeResource ComboBoxBorderThemeBrush}"
+          Background="#F3F3F3"
+          CornerRadius="8"
+          Padding="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
+            <RowDefinition Height="60" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="40" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*" />
+            <ColumnDefinition Width="6*" />
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0"
-                    HorizontalAlignment="Left">
-            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xEA80;"/>
-            <TextBlock Style="{StaticResource BaseTextBlockStyle}" Text="SmartDeviceV2" Margin="8,0,0,0"/>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Grid.Row="0"
+                    HorizontalAlignment="Left" Grid.Column="0">
+            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xEA80;" VerticalAlignment="Center"/>
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.Name}"
+                       Margin="8,0,0,0" FontWeight="SemiBold"/>
         </StackPanel>
 
-        <Grid Grid.Row="1" VerticalAlignment="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <ListView Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch"
+                  ItemsSource="{x:Bind ViewModel.Accessories}"
+                  ItemTemplate="{StaticResource AccessoryListViewTemplate}"
+                  SelectionMode="None" Header="Accessories">
+        </ListView>
 
-            <ColorPicker Grid.Column="1"
-                         IsMoreButtonVisible="False" IsColorSliderVisible="False"
-                         IsColorChannelTextInputVisible="True" IsHexInputVisible="True"
-                         IsAlphaEnabled="False" IsAlphaSliderVisible="False" IsAlphaTextInputVisible="False"
-                         x:Name="DeviceColorPicker"/>
-        </Grid>
+        <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Grid.Row="1" 
+                      Width="40" Height="40" Grid.Column="0"/>
+
+        <ScrollViewer Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
+            <StackPanel Orientation="Vertical" CornerRadius="8" Padding="16" Background="#FBFBFB">
+                    <ComboBox ItemsSource="{x:Bind ViewModel.EffectModes}" MinWidth="128" SelectedIndex="1"
+                              DisplayMemberPath="Name" Header="Effect Mode"/>
+
+                    <ColorPicker IsMoreButtonVisible="True" IsColorSliderVisible="False"
+                                 IsColorChannelTextInputVisible="True" IsHexInputVisible="True"
+                                 IsAlphaEnabled="False" IsAlphaSliderVisible="False" IsAlphaTextInputVisible="False"
+                                 x:Name="DeviceColorPicker" ColorChanged="DeviceColorPicker_ColorChanged"
+                                 Margin="0,8,0,0" ColorSpectrumShape="Ring" MaxWidth="128"
+                                 HorizontalAlignment="Left"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button Content="Apply" Style="{ThemeResource AccentButtonStyle}" 
+                Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right"
+                Command="{x:Bind ViewModel.ApplyCommand}" MinWidth="128"/>
     </Grid>
 </UserControl>
