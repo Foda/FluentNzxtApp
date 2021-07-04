@@ -12,7 +12,7 @@ namespace FluentNzxt.ViewModel
 {
     public class Hue2AccessoryViewModel : ObservableObject
     {
-        private Hue2Accessory _model;
+        private INzxtAccessory _model;
 
         public string Name => _model.Name;
 
@@ -23,7 +23,7 @@ namespace FluentNzxt.ViewModel
             private set => SetProperty(ref _leds, value);
         }
 
-        public Hue2AccessoryViewModel(Hue2Accessory model)
+        public Hue2AccessoryViewModel(INzxtAccessory model)
         {
             _model = model;
 

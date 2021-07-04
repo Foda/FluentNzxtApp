@@ -1,4 +1,5 @@
 ﻿using FluentNzxt.ViewModel;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 
@@ -6,25 +7,18 @@ namespace FluentNzxt.View
 {
     public sealed partial class DeviceView : UserControl
     {
-        public SmartDeviceViewModel ViewModel { get; }
+        public static readonly DependencyProperty ViewModelProperty = DependencyProperty
+               .Register(nameof(ViewModel), typeof(SmartDeviceViewModel), typeof(DeviceView), new PropertyMetadata(null));
+
+        public SmartDeviceViewModel ViewModel
+        {
+            get => (SmartDeviceViewModel)GetValue(ViewModelProperty);
+            set => SetValue(ViewModelProperty, value);
+        }
 
         public DeviceView()
         {
             this.InitializeComponent();
-
-            ViewModel = new SmartDeviceViewModel(new NzxtLib.SmartDevice());
-
-            Loaded += DeviceView_Loaded;
-        }
-
-        private async void DeviceView_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-        {
-            await ViewModel.FindDeviceCommand.ExecuteAsync(null);
-        }
-
-        private void DeviceColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-        {
-            ViewModel.Color = DeviceColorPicker.Color;
         }
     }
 }
