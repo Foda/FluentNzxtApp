@@ -11,5 +11,6 @@ namespace NzxtLib
         string Name { get; }
         byte Id { get; }
         int LEDCount { get; }
+        int Channel { get; }
     }
 }

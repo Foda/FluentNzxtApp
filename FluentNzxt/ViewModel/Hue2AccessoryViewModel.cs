@@ -15,6 +15,7 @@ namespace FluentNzxt.ViewModel
         private INzxtAccessory _model;
 
         public string Name => _model.Name;
+        public string Channel => _model.Channel.ToString();
 
         private ObservableCollection<Color> _leds;
         public ObservableCollection<Color> LEDS

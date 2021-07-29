@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Devices.Enumeration;
 using Windows.UI;
 
 namespace FluentNzxt.ViewModel
 {
-    public class SmartDeviceViewModel : ObservableObject
+    public class SmartDeviceViewModel : ObservableObject, IDeviceViewModel
     {
         private SmartDevice _model;
 
@@ -65,6 +66,8 @@ namespace FluentNzxt.ViewModel
         }
 
         public string Name => _model.Name;
+        public string RawName => _model.RawName;
+        public DeviceThumbnail Thumbnail => _model.Thumbnail;
 
         private bool _isLoading = false;
         public bool IsLoading

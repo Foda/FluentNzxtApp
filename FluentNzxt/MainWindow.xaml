@@ -5,36 +5,32 @@
     xmlns:local="using:FluentNzxt"
     xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:view="using:FluentNzxt.View"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:view="using:FluentNzxt.View"
     mc:Ignorable="d">
 
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-          x:Name="RootGrid" Background="#F9F9F9" Padding="56,56,24,56">
+          x:Name="RootGrid" Background="#F3F3F3" Padding="24,24,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="300" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Devices" FontFamily="Segoe UI Variable Text"
+                   Style="{StaticResource NewBodyStrongTextBlockStyle}"
+                   Grid.Column="0"/>
         
         <ListView HorizontalContentAlignment="Stretch" Grid.Column="0"
-                  ItemsSource="{x:Bind ViewModel.Devices}"
+                  ItemsSource="{x:Bind ViewModel.Devices}" Margin="0,24,0,0"
                   SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid Width="250" Height="64" Padding="8"
-                          CornerRadius="8" Background="#FEFEFE" BorderThickness="1" BorderBrush="#E9E9E9">
-
-                        <RelativePanel Margin="16,6,0,0">
-                            <TextBlock x:Name="TitleText"
-                                       Style="{StaticResource BodyTextBlockStyle}" Text="{Binding Name}"
-                                       TextLineBounds="TrimToCapHeight"
-                                       TextWrapping="NoWrap" />
-                            <TextBlock Opacity="0.5"
-                                       Margin="0,2,8,0"
-                                       RelativePanel.Below="TitleText"
-                                       Text="Blah blah blah"
-                                       TextTrimming="CharacterEllipsis" />
-                        </RelativePanel>
-                    </Grid>
+                    <TextBlock x:Name="TitleText"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               TextLineBounds="TrimToCapHeight"
+                               TextWrapping="NoWrap">
+                        <Run Text="&#xE781;" FontFamily="Segoe Fluent Icons"/> <Run Text="{Binding Name}" FontFamily="Segoe UI Variable Text"/>
+                    </TextBlock>
                 </DataTemplate>
             </ListView.ItemTemplate>
             <ListView.ItemContainerStyle>
@@ -45,13 +41,11 @@
         </ListView>
 
         <controls:DropShadowPanel BlurRadius="8" ShadowOpacity="0.1" OffsetX="0" OffsetY="4"
-                                  Color="#E9E9E9" IsMasked="True" Margin="0,24,0,0"
+                                  Color="#E9E9E9" IsMasked="True" Margin="8,24,0,0"
                                   HorizontalAlignment="Stretch" Grid.Column="1"
                                   HorizontalContentAlignment="Stretch">
-            <ScrollViewer>
-                <view:DeviceView x:Name="DeviceView" HorizontalAlignment="Stretch"
-                                 ViewModel="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"/>
-            </ScrollViewer>
+            <view:DeviceView x:Name="DeviceView" HorizontalAlignment="Stretch"
+                             ViewModel="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"/>
         </controls:DropShadowPanel>
     </Grid>
 </Window>

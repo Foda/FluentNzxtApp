@@ -1,9 +1,13 @@
-﻿using HidLibrary;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Windows.Devices.Enumeration;
+using Windows.Devices.HumanInterfaceDevice;
+using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace NzxtLib
 {
@@ -23,6 +27,8 @@ namespace NzxtLib
         public HidDevice Device => _device;
 
         public string Name => "Smart Device v2";
+        public string RawName { get; private set; }
+        public DeviceThumbnail Thumbnail { get; private set; }
 
         public List<INzxtAccessory> LedAccessories { get; private set; }
 
@@ -57,16 +63,27 @@ namespace NzxtLib
 
         public async Task<bool> FindDevice()
         {
-            _device = HidDevices.Enumerate(NZXTVendorId)
-                .ToList()
-                .FirstOrDefault(device =>
-                    device.Attributes.ProductId == SmartDeviceV2ProductId &&
-                    device.Attributes.VendorId == NZXTVendorId);
+            string selector = "System.Devices.InterfaceClassGuid:=\"{4D1E55B2-F16F-11CF-88CB-001111000030}\" AND " +
+                              "System.Devices.InterfaceEnabled:=System.StructuredQueryType.Boolean#True AND " +
+                              $"System.DeviceInterface.Hid.VendorId:={NZXTVendorId} AND " +
+                              $"System.DeviceInterface.Hid.ProductId:={SmartDeviceV2ProductId}";
+
+            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(selector);
+
+            if (devices.Count == 0)
+                return false;
+
+            var theDevice = devices[0];
+
+            RawName = theDevice.Name;
+            Thumbnail = await theDevice.GetGlyphThumbnailAsync();
+
+            System.Console.Write(theDevice.Properties);
+
+            _device = await HidDevice.FromIdAsync(devices.ElementAt(0).Id, FileAccessMode.ReadWrite);
 
             if (_device != null)
             {
-                _device.OpenDevice();
-
                 _channelIndex.Clear();
                 for (int i = 0; i < ChannelCount; i++)
                 {
@@ -78,7 +95,7 @@ namespace NzxtLib
                     LedAccessories.Clear();
 
                     List<INzxtAccessory> accessories = await GetAccessories();
-                    
+
                     LedAccessories.AddRange(accessories);
 
                     return true;
@@ -96,21 +113,26 @@ namespace NzxtLib
             List<INzxtAccessory> accessories = new();
 
             // Request lighting info
-            bool didWrite = await Task.Run(() => _device.Write(new byte[2] { 0x20, 0x03 }));
+            bool didWrite = await WriteToDevice(new byte[2] { 0x20, 0x03 });
             if (!didWrite)
             {
                 throw new Exception("Failed to request LED status");
             }
 
-            HidDeviceData data = await Task.Run(() => _device.Read());
-            int channelCount = data.Data[14];
+            HidInputReport inReport = await _device.GetInputReportAsync();
+            byte[] data = new byte[inReport.Data.Length];
+
+            DataReader dataReader = DataReader.FromBuffer(inReport.Data);
+            dataReader.ReadBytes(data);
+
+            int channelCount = data[14];
             int offset = 15;
             
             for (int i = 0; i < channelCount; i++)
             {
                 for (int a = 0; a < HUE2_MAX_ACCESSORIES_IN_CHANNEL; a++)
                 {
-                    byte accessoryId = data.Data[offset + i * HUE2_MAX_ACCESSORIES_IN_CHANNEL + a];
+                    byte accessoryId = data[offset + i * HUE2_MAX_ACCESSORIES_IN_CHANNEL + a];
                     if (accessoryId == 0)
                     {
                         break;
@@ -118,7 +140,7 @@ namespace NzxtLib
 
                     try
                     {
-                        accessories.Add(Hue2Accessory.GetAccessoryFromId(accessoryId));
+                        accessories.Add(Hue2Accessory.GetAccessoryFromId(accessoryId, i));
                     }
                     catch (ArgumentException ex)
                     {
@@ -130,9 +152,23 @@ namespace NzxtLib
             return accessories;
         }
 
+        private async Task<bool> WriteToDevice(byte[] buffer)
+        {
+            HidOutputReport outReport = _device.CreateOutputReport();
+
+            DataWriter dataWriter = new DataWriter();
+            dataWriter.WriteBytes(buffer);
+
+            outReport.Data = dataWriter.DetachBuffer();
+
+            await _device.SendOutputReportAsync(outReport);
+
+            return true;
+        }
+
         public Task<bool> ApplyFixedColor(Color color)
         {
-            return Apply(1, new List<Color> { color }, 
+            return Apply(1, new List<Color> { color },
                 EffectModes.FirstOrDefault(mode => mode.Name == "Fixed"),
                 EffectSpeeds.FirstOrDefault(speed => speed.Name == "Normal"));
         }
@@ -192,8 +228,7 @@ namespace NzxtLib
                 toWrite[pixelIdx + 0x02] = colors[i].B;
             }
 
-            // Note: we can't use WriteAsync because it's not supported in .NET 5 (library issue)
-            return Task.Run(() => _device.Write(toWrite));
+            return WriteToDevice(toWrite);
         }
 
         public void Dispose()

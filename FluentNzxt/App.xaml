@@ -9,7 +9,32 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
+            <Style x:Key="NewBodyStrongTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="LineHeight" Value="20" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
+            </Style>
+
+            <Style x:Key="NewTitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontFamily" Value="Segoe UI Variable Display" />
+                <Setter Property="FontSize" Value="28" />
+                <Setter Property="LineHeight" Value="36" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
+            </Style>
+
+            <Style x:Key="NewSubTitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontFamily" Value="Segoe UI Variable Display" />
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="LineHeight" Value="28" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
+            </Style>
+
             <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter"/>
+            <converters:DeviceThumbnailToImageConverter x:Key="DeviceThumbnailToImageConverter"/>
 
             <Style x:Key="NoIconColorPickerButtonStyle" TargetType="controls:ColorPickerButton">
                 <Setter Property="Background" Value="{ThemeResource ButtonBackground}" />
@@ -133,11 +158,15 @@
                 </Grid>
             </ControlTemplate>
 
-            <Style x:Key="ColorPickerButtonFlyoutPresenterStyle"
-           TargetType="FlyoutPresenter">
+            <Style x:Key="ColorPickerButtonFlyoutPresenterStyle" TargetType="FlyoutPresenter">
                 <Setter Property="Padding" Value="0" />
                 <Setter Property="CornerRadius" Value="{ThemeResource OverlayCornerRadius}" />
             </Style>
+
+            <SolidColorBrush x:Key="FakeMicaBorderBrush" Color="#E5E5E5" />
+            <SolidColorBrush x:Key="FakeMicaFillBrush" Color="#F9F9F9" />
+
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="White" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
