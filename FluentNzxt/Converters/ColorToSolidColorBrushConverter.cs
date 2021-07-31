@@ -13,19 +13,11 @@ namespace FluentNzxt.Converters
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             Color drawingColor = (Color)value;
-            if (_brushCache.ContainsKey(drawingColor))
-            {
-                return _brushCache[drawingColor];
-            }
-            else
-            {
-                SolidColorBrush newColor = new(
+
+            SolidColorBrush newColor = new(
                     Color.FromArgb(255, drawingColor.R, drawingColor.G, drawingColor.B));
 
-                _brushCache.Add(drawingColor, newColor);
-
-                return newColor;
-            }
+            return newColor;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

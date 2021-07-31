@@ -4,8 +4,4 @@
     <TargetFramework>net5.0-windows10.0.19041.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\RBGLib\RBGLib.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -1,7 +1,9 @@
 ﻿using FluentNzxt.ViewModel;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
+using Windows.UI;
 
 namespace FluentNzxt.View
 {

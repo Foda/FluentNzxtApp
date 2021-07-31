@@ -1,6 +1,7 @@
-﻿using System;
+﻿using RBGLib;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ using Windows.Devices.Enumeration;
 using Windows.Devices.HumanInterfaceDevice;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI;
 
 namespace NzxtLib
 {
@@ -21,40 +23,28 @@ namespace NzxtLib
         private const int NZXTVendorId = 7793;
         private const int SmartDeviceV2ProductId = 8198;
 
-        private Dictionary<int, byte> _channelIndex = new();
-
         private HidDevice _device;
         public HidDevice Device => _device;
 
         public string Name => "Smart Device v2";
         public string RawName { get; private set; }
-        public DeviceThumbnail Thumbnail { get; private set; }
 
         public List<INzxtAccessory> LedAccessories { get; private set; }
 
         /// <summary>
         /// mval | mod3 | moving flag
         /// </summary>
-        private List<INzxtEffectMode> _effectModes = new()
+        private List<Hue2EffectMode> _effectModes = new()
         {
-            new Hue2EffectMode("Off",           new byte[3] { 0x00, 0x00, 0x00 }, 0, 0 , false),
-            new Hue2EffectMode("Fixed",         new byte[3] { 0x00, 0x00, 0x00 }, 1, 1 , false),
-            new Hue2EffectMode("Fading",        new byte[3] { 0x01, 0x00, 0x00 }, 1, 8 , true),
-            new Hue2EffectMode("Spectrum Wave", new byte[3] { 0x02, 0x00, 0x00 }, 0, 0 , true),
-            new Hue2EffectMode("Pulse",         new byte[3] { 0x06, 0x00, 0x00 }, 1, 8 , true),
-            new Hue2EffectMode("Breathing",     new byte[3] { 0x07, 0x00, 0x00 }, 1, 8 , true),
+            new Hue2EffectMode("Off",           new byte[3] { 0x00, 0x00, 0x00 }, 0, 0, -1, -1),
+            new Hue2EffectMode("Fixed",         new byte[3] { 0x00, 0x00, 0x00 }, 1, 1, -1, -1),
+            new Hue2EffectMode("Fading",        new byte[3] { 0x01, 0x00, 0x00 }, 1, 8, 0, 4),
+            new Hue2EffectMode("Spectrum Wave", new byte[3] { 0x02, 0x00, 0x00 }, 0, 0, 0, 4),
+            new Hue2EffectMode("Pulse",         new byte[3] { 0x06, 0x00, 0x00 }, 1, 8, 0, 4),
+            new Hue2EffectMode("Breathing",     new byte[3] { 0x07, 0x00, 0x00 }, 1, 8, 0, 4),
         };
 
-        public List<INzxtEffectMode> EffectModes => _effectModes;
-
-        public List<Hue2EffectSpeed> EffectSpeeds => new()
-        {
-            new Hue2EffectSpeed("Slowest", 0x00),
-            new Hue2EffectSpeed("Slow", 0x01),
-            new Hue2EffectSpeed("Normal", 0x02),
-            new Hue2EffectSpeed("Fast", 0x03),
-            new Hue2EffectSpeed("Fastest", 0x04),
-        };
+        public List<Hue2EffectMode> EffectModes => _effectModes;
 
         public SmartDevice()
         {
@@ -73,23 +63,12 @@ namespace NzxtLib
             if (devices.Count == 0)
                 return false;
 
-            var theDevice = devices[0];
+            RawName = devices[0].Name;
 
-            RawName = theDevice.Name;
-            Thumbnail = await theDevice.GetGlyphThumbnailAsync();
-
-            System.Console.Write(theDevice.Properties);
-
-            _device = await HidDevice.FromIdAsync(devices.ElementAt(0).Id, FileAccessMode.ReadWrite);
+            _device = await HidDevice.FromIdAsync(devices[0].Id, FileAccessMode.ReadWrite);
 
             if (_device != null)
             {
-                _channelIndex.Clear();
-                for (int i = 0; i < ChannelCount; i++)
-                {
-                    _channelIndex.Add(i + 1, (byte)Math.Pow(2.0, i));
-                }
-
                 try
                 {
                     LedAccessories.Clear();
@@ -110,29 +89,53 @@ namespace NzxtLib
 
         private async Task<List<INzxtAccessory>> GetAccessories()
         {
-            List<INzxtAccessory> accessories = new();
+            Stopwatch sw = Stopwatch.StartNew();
+            TaskCompletionSource<List<INzxtAccessory>> getAccessories = new();
+            Windows.Foundation.TypedEventHandler<HidDevice, HidInputReportReceivedEventArgs> reportEvent = null;
 
-            // Request lighting info
-            bool didWrite = await WriteToDevice(new byte[2] { 0x20, 0x03 });
+            reportEvent = (s, e) =>
+            {
+                HidInputReport inputReport = e.Report;
+
+                byte[] data = new byte[DEVICE_BUFFER_SIZE];
+                DataReader dataReader = DataReader.FromBuffer(inputReport.Data);
+                dataReader.ReadBytes(data);
+
+                List<INzxtAccessory> items = ParseChannelAccessories(data);
+                if (items.Any() || sw.ElapsedMilliseconds > 6000)
+                {
+                    // If 2 seconds pass without a result, just return an empty list
+                    getAccessories.SetResult(items);
+                    _device.InputReportReceived -= reportEvent;
+                }
+            };
+
+            _device.InputReportReceived += reportEvent;
+
+            // Now make the request for what things are attached
+            // Build the lighting info request
+            byte[] req = new byte[DEVICE_BUFFER_SIZE];
+            req[0] = 0x20;
+            req[1] = 0x03;
+
+            bool didWrite = await WriteToDevice(req);
             if (!didWrite)
             {
                 throw new Exception("Failed to request LED status");
             }
 
-            HidInputReport inReport = await _device.GetInputReportAsync();
-            byte[] data = new byte[inReport.Data.Length];
+            return await getAccessories.Task;
+        }
 
-            DataReader dataReader = DataReader.FromBuffer(inReport.Data);
-            dataReader.ReadBytes(data);
-
-            int channelCount = data[14];
-            int offset = 15;
-            
-            for (int i = 0; i < channelCount; i++)
+        private List<INzxtAccessory> ParseChannelAccessories(byte[] data)
+        {
+            List<INzxtAccessory> accessories = new();
+            for (int i = 0; i < ChannelCount; i++)
             {
+                int offset = 0x0F + (6 * i);
                 for (int a = 0; a < HUE2_MAX_ACCESSORIES_IN_CHANNEL; a++)
                 {
-                    byte accessoryId = data[offset + i * HUE2_MAX_ACCESSORIES_IN_CHANNEL + a];
+                    byte accessoryId = data[offset + a];
                     if (accessoryId == 0)
                     {
                         break;
@@ -154,37 +157,42 @@ namespace NzxtLib
 
         private async Task<bool> WriteToDevice(byte[] buffer)
         {
-            HidOutputReport outReport = _device.CreateOutputReport();
+            try
+            {
+                HidOutputReport outReport = _device.CreateOutputReport();
 
-            DataWriter dataWriter = new DataWriter();
-            dataWriter.WriteBytes(buffer);
+                DataWriter dataWriter = new DataWriter();
+                dataWriter.WriteBytes(buffer);
 
-            outReport.Data = dataWriter.DetachBuffer();
+                outReport.Data = dataWriter.DetachBuffer();
 
-            await _device.SendOutputReportAsync(outReport);
+                await _device.SendOutputReportAsync(outReport);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
             return true;
         }
 
         public Task<bool> ApplyFixedColor(Color color)
         {
-            return Apply(1, new List<Color> { color },
-                EffectModes.FirstOrDefault(mode => mode.Name == "Fixed"),
-                EffectSpeeds.FirstOrDefault(speed => speed.Name == "Normal"));
+            return Apply(new List<Color> { color },
+                EffectModes.FirstOrDefault(mode => mode.Name == "Fixed"));
         }
 
         public Task<bool> ApplyFixedColor(List<Color> colors)
         {
-            return Apply(1, colors,
-                EffectModes.FirstOrDefault(mode => mode.Name == "Fixed"),
-                EffectSpeeds.FirstOrDefault(speed => speed.Name == "Normal"));
+            return Apply(colors,
+                EffectModes.FirstOrDefault(mode => mode.Name == "Fixed"));
         }
 
-        public Task<bool> Apply(byte channel, List<Color> colors, INzxtEffectMode effect, Hue2EffectSpeed speed)
+        public async Task<bool> Apply(List<Color> colors, EffectMode effect)
         {
             if (_device == null)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             if (colors.Count > MAX_EFFECT_COLORS)
@@ -198,37 +206,52 @@ namespace NzxtLib
                     $"Invalid colors count for effect '{effect.Name}'. Must be greater than {effect.MinColors} and less than {effect.MaxColors}");
             }
 
-            byte[] toWrite = new byte[DEVICE_BUFFER_SIZE];
-
-            // Effect packet
-            toWrite[0x00] = 0x28;
-            toWrite[0x01] = 0x03;
-            toWrite[0x02] = channel;   // channel id
-            toWrite[0x03] = 0x28;      // ???
-
-            // Effect mode
-            toWrite[0x04] = effect.Mode;
-
-            // Speed
-            toWrite[0x05] = speed.Value;
-
-            // Direction
-            toWrite[0x06] = 0;
-            toWrite[0x07] = 0;   // Backward flag (0,1)
-
-            // Color count
-            toWrite[0x08] = (byte)colors.Count;
-
-            int pixelIdx = 0;
-            for (int i = 0; i < colors.Count; i++)
+            for (int channel = 0; channel < ChannelCount; channel++)
             {
-                pixelIdx = 10 + (i * 3); // Start index is 10
-                toWrite[pixelIdx + 0x00] = colors[i].G;
-                toWrite[pixelIdx + 0x01] = colors[i].R;
-                toWrite[pixelIdx + 0x02] = colors[i].B;
+                // Only write to the channel if there's an accessory on it
+                if (!LedAccessories.Any(accessory => accessory.Channel == channel))
+                {
+                    continue;
+                }
+
+                // Effect packet
+                byte[] toWrite = new byte[DEVICE_BUFFER_SIZE];
+                toWrite[0x00] = 0x28;
+                toWrite[0x01] = 0x03;
+                toWrite[0x02] = (byte)(channel + 1);   // channel id
+                toWrite[0x03] = 0x28;      // ???
+
+                // Effect mode
+                toWrite[0x04] = effect.Mode;
+
+                // Speed
+                toWrite[0x05] = (byte)effect.Speed;
+
+                // Direction
+                toWrite[0x06] = 0;
+                toWrite[0x07] = 0;   // Backward flag (0,1)
+
+                // Color count
+                toWrite[0x08] = (byte)colors.Count;
+
+                // Colors
+                int pixelIdx = 0;
+                for (int i = 0; i < colors.Count; i++)
+                {
+                    pixelIdx = 10 + (i * 3); // Start index is 10
+                    toWrite[pixelIdx + 0x00] = colors[i].G;
+                    toWrite[pixelIdx + 0x01] = colors[i].R;
+                    toWrite[pixelIdx + 0x02] = colors[i].B;
+                }
+
+                bool result = await WriteToDevice(toWrite);
+                if (!result)
+                {
+                    return false;
+                }
             }
 
-            return WriteToDevice(toWrite);
+            return true;
         }
 
         public void Dispose()

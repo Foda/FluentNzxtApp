@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RBGLib;
+using System;
 using System.Drawing;
 
 namespace NzxtLib
@@ -27,9 +28,14 @@ namespace NzxtLib
 
     public record Hue2EffectSpeed(string Name, byte Value);
 
-    public record Hue2EffectMode(string Name, byte[] Data, int MinColors, int MaxColors, bool HasSpeedSetting) : INzxtEffectMode
+    public record Hue2EffectMode : EffectMode
     {
-        public byte Mode => Data[0];
-        public bool HasColorModes => MinColors > 0;
+        public override byte Mode => Data[0];
+
+        public Hue2EffectMode(string name, byte[] data, int minColors, int maxColors, int minSpeed, int maxSpeed)
+            :base(name, data, minColors, maxColors, minSpeed, maxSpeed)
+        {
+
+        }
     }
 }

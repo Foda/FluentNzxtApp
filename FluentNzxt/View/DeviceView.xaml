@@ -11,11 +11,9 @@
     <UserControl.Resources>
         <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"></SolidColorBrush>
         <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="Transparent" />
-        
+
         <UniformGridLayout x:Name="LEDLayoutGrid" MinRowSpacing="2" MinColumnSpacing="2"
                            ItemsStretch="Uniform" ItemsJustification="SpaceBetween"/>
-
-        <StackLayout x:Name="ColorStackLayout" Orientation="Horizontal" Spacing="4" />
 
         <DataTemplate x:Key="AccessoryListViewTemplate" x:DataType="viewModel:Hue2AccessoryViewModel">
             <controls:DropShadowPanel BlurRadius="8" ShadowOpacity="0.1" OffsetX="0" OffsetY="4" HorizontalAlignment="Stretch"
@@ -71,7 +69,7 @@
 
         <NavigationView PaneDisplayMode="Top" IsBackButtonVisible="Collapsed" Grid.Row="1">
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Channel 1" x:Name="Channel1" />
+                <NavigationViewItem Content="Channel 1" x:Name="Channel1" IsSelected="True"/>
             </NavigationView.MenuItems>
             <Frame BorderBrush="{StaticResource FakeMicaBorderBrush}" BorderThickness="1"
                    Background="{StaticResource FakeMicaFillBrush}" CornerRadius="8,0,0,0"
@@ -102,55 +100,15 @@
                                         </StackPanel>
 
                                         <ComboBox ItemsSource="{x:Bind ViewModel.EffectModes}"
-                                                    SelectedItem="{x:Bind ViewModel.SelectedEffectMode, Mode=TwoWay}"
-                                                    MinWidth="170" DisplayMemberPath="Name"
-                                                    HorizontalAlignment="Right"/>
+                                                  SelectedItem="{x:Bind ViewModel.SelectedEffectMode, Mode=TwoWay}"
+                                                  MinWidth="170" DisplayMemberPath="Name"
+                                                  HorizontalAlignment="Right"/>
                                     </Grid>
 
-                                    <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" 
-                                                Padding="16" BorderThickness="0,1,0,0" BorderBrush="{StaticResource FakeMicaBorderBrush}">
-                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ColorSequence}" HorizontalAlignment="Stretch"
-                                                       Layout="{StaticResource ColorStackLayout}">
-                                            <ItemsRepeater.ItemTemplate>
-                                                <DataTemplate>
-                                                    <controls:ColorPickerButton SelectedColor="{Binding}" Width="64" Height="64"
-                                                                                    Style="{StaticResource NoIconColorPickerButtonStyle}">
-                                                        <controls:ColorPickerButton.ColorPickerStyle>
-                                                            <Style TargetType="controls:ColorPicker">
-                                                                <Setter Property="ColorSpectrumShape" Value="Ring"/>
-                                                                <Setter Property="IsAlphaEnabled" Value="False"/>
-                                                                <Setter Property="IsHexInputVisible" Value="True"/>
-                                                            </Style>
-                                                        </controls:ColorPickerButton.ColorPickerStyle>
-                                                    </controls:ColorPickerButton>
-                                                </DataTemplate>
-                                            </ItemsRepeater.ItemTemplate>
-                                        </ItemsRepeater>
-
-                                        <Button Command="{x:Bind ViewModel.AddColorCommand}" Margin="0,4,0,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE109;"/>
-                                                <TextBlock Text="Add another color" Margin="8,0,0,0" />
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-
-                                    <Grid Height="64" Padding="16" BorderThickness="0,1,0,0" BorderBrush="#E9E9E9">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xEC49;" VerticalAlignment="Center"/>
-                                            <StackPanel Orientation="Vertical" Margin="8,0,0,0">
-                                                <TextBlock Text="Effect Speed" />
-                                                <TextBlock Text="Change the speed of effects that are animated" Opacity="0.5" FontSize="11"
-                                                            TextLineBounds="Full"/>
-                                            </StackPanel>
-                                        </StackPanel>
-
-                                        <ComboBox ItemsSource="{x:Bind ViewModel.EffectSpeeds}"
-                                                SelectedItem="{x:Bind ViewModel.SelectedEffectSpeed, Mode=TwoWay}"
-                                                IsEnabled="{x:Bind ViewModel.SelectedEffectMode.HasSpeedSetting, Mode=OneWay}"
-                                                MinWidth="170" DisplayMemberPath="Name" HorizontalAlignment="Right" 
-                                                VerticalAlignment="Center"/>
-                                    </Grid>
+                                    <ContentControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                                    VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                    Content="{x:Bind ViewModel.SelectedEffectMode, Mode=OneWay}"
+                                                    ContentTemplate="{x:Bind ViewModel.SelectedEffectMode, Mode=OneWay, Converter={StaticResource ImplicitDataTemplateConverter}}"/>
                                 </StackPanel>
                             </Border>
                         </controls:DropShadowPanel>
