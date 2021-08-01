@@ -52,5 +52,12 @@ namespace FluentNzxt.View
             }
             _editColorIndex = -1;
         }
+
+        private void RemoveColor_Click(object sender, RoutedEventArgs e)
+        {
+            Color selectedColor = (Color)(sender as MenuFlyoutItem).Tag;
+            int colorIdx = ViewModel.ColorSequence.IndexOf(selectedColor);
+            ViewModel.RemoveColorCommand.Execute(colorIdx);
+        }
     }
 }

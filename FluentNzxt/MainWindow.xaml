@@ -10,7 +10,7 @@
     mc:Ignorable="d">
 
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-          x:Name="RootGrid" Background="#F3F3F3" Padding="24,24,0,0">
+          x:Name="RootGrid" Background="{StaticResource AppBackground}" Padding="24,24,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="300" />
             <ColumnDefinition Width="*" />
@@ -43,12 +43,8 @@
             </ListView.ItemContainerStyle>
         </ListView>
 
-        <controls:DropShadowPanel BlurRadius="8" ShadowOpacity="0.1" OffsetX="0" OffsetY="4"
-                                  Color="#E9E9E9" IsMasked="True" Margin="8,24,0,0"
-                                  HorizontalAlignment="Stretch" Grid.Column="1"
-                                  HorizontalContentAlignment="Stretch">
-            <view:DeviceView x:Name="DeviceView" HorizontalAlignment="Stretch"
-                             ViewModel="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"/>
-        </controls:DropShadowPanel>
+        <view:DeviceView x:Name="DeviceView" HorizontalAlignment="Stretch"
+                         Grid.Column="1" Margin="8,24,0,0"
+                         ViewModel="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"/>
     </Grid>
 </Window>

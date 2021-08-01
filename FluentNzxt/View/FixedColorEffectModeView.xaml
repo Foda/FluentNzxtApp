@@ -7,11 +7,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" 
-                Padding="16" BorderThickness="0,1,0,0" BorderBrush="{StaticResource FakeMicaBorderBrush}">
-        <Button Width="64" Height="64" Padding="0">
+    <Grid Height="64" Padding="16,0,16,0" BorderThickness="0,1,0,0" BorderBrush="{StaticResource FakeMicaBorderBrush}">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Margin="0,16,0,16">
+            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE790;" VerticalAlignment="Center"/>
+            <TextBlock Text="Effect Color" Margin="12,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <Button Width="50" Height="50" Padding="0" BorderThickness="0" CornerRadius="4" 
+                HorizontalAlignment="Right" VerticalAlignment="Center">
             <Rectangle Fill="{x:Bind ViewModel.Color, Mode=OneWay, Converter={StaticResource ColorToSolidColorBrushConverter}}"
-                       Width="64" Height="64"/>
+                       Width="50" Height="50"/>
             <Button.Flyout>
                 <Flyout x:Name="ColorPickerFlyout" Closed="ColorFlyout_Closed">
                     <ColorPicker x:Name="ColorPickerFlyoutPicker"
@@ -21,5 +27,5 @@
                 </Flyout>
             </Button.Flyout>
         </Button>
-    </StackPanel>
+    </Grid>
 </UserControl>

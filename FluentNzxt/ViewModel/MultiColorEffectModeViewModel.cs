@@ -1,14 +1,11 @@
-﻿using Microsoft.UI;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
+﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
-using NzxtLib;
+using RBGLib;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using Windows.UI;
-using RBGLib;
 
 namespace FluentNzxt.ViewModel
 {
@@ -27,6 +24,11 @@ namespace FluentNzxt.ViewModel
         public bool CanAddNewColor
         {
             get => ColorSequence.Count < _model.MaxColors;
+        }
+
+        public bool CanRemoveNewColor
+        {
+            get => ColorSequence.Count > _model.MinColors;
         }
 
         public string Name => _model.Name;
@@ -60,8 +62,22 @@ namespace FluentNzxt.ViewModel
                 ColorSequence.Add(Color.FromArgb(255, buffer[0], buffer[1], buffer[2]));
 
                 OnPropertyChanged(nameof(CanAddNewColor));
+                OnPropertyChanged(nameof(CanRemoveNewColor));
+
                 AddColorCommand.NotifyCanExecuteChanged();
+                RemoveColorCommand.NotifyCanExecuteChanged();
             }, () => CanAddNewColor);
+
+            RemoveColorCommand = new RelayCommand<int>((lightIdx) =>
+            {
+                ColorSequence.RemoveAt(lightIdx);
+
+                OnPropertyChanged(nameof(CanAddNewColor));
+                OnPropertyChanged(nameof(CanRemoveNewColor));
+
+                AddColorCommand.NotifyCanExecuteChanged();
+                RemoveColorCommand.NotifyCanExecuteChanged();
+            }, (lightIdx) => CanRemoveNewColor);
         }
 
         public List<Color> GetColors()

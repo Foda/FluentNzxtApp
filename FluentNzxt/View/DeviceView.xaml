@@ -12,14 +12,14 @@
         <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"></SolidColorBrush>
         <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="Transparent" />
 
-        <UniformGridLayout x:Name="LEDLayoutGrid" MinRowSpacing="2" MinColumnSpacing="2"
-                           ItemsStretch="Uniform" ItemsJustification="SpaceBetween"/>
+        <StackLayout x:Name="LEDLayoutGrid" Orientation="Horizontal" Spacing="4" />
 
         <DataTemplate x:Key="AccessoryListViewTemplate" x:DataType="viewModel:Hue2AccessoryViewModel">
             <controls:DropShadowPanel BlurRadius="8" ShadowOpacity="0.1" OffsetX="0" OffsetY="4" HorizontalAlignment="Stretch"
-                                      Color="#E9E9E9" IsMasked="True" HorizontalContentAlignment="Stretch">
-                <Border CornerRadius="8" Background="#FEFEFE" BorderThickness="1" BorderBrush="{StaticResource FakeMicaBorderBrush}"
-                        HorizontalAlignment="Stretch" Padding="4">
+                                      Color="{StaticResource CardShadowColor}" IsMasked="True" HorizontalContentAlignment="Stretch">
+                <Border CornerRadius="8" Background="{StaticResource CardBackgroundBrush}" BorderThickness="1"
+                        BorderBrush="{StaticResource FakeMicaBorderBrush}"
+                        HorizontalAlignment="Stretch" Padding="16">
                     <Grid HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
@@ -30,18 +30,14 @@
                                   Grid.Row="0" Grid.Column="0" FontSize="24"/>
 
                         <StackPanel Orientation="Vertical" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,8,0">
-                            <TextBlock Text="{Binding Name}"
-                                       Style="{StaticResource NewBodyStrongTextBlockStyle}"/>
-
-                            <TextBlock>
-                                <Run Text="Channel"/> <Run Text="{Binding Channel}"/>
-                            </TextBlock>
+                            <TextBlock Text="{Binding Name}" Style="{StaticResource NewBodyStrongTextBlockStyle}"/>
 
                             <ItemsRepeater ItemsSource="{Binding LEDS}" MaxWidth="256"
-                                           Layout="{StaticResource LEDLayoutGrid}" Margin="0,0,0,8">
+                                           Layout="{StaticResource LEDLayoutGrid}" Margin="0,8,0,8">
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>
-                                        <Ellipse Width="16" Height="16" Fill="{Binding Converter={StaticResource ColorToSolidColorBrushConverter}}" />
+                                        <Border Width="6" Height="6" Background="{Binding Converter={StaticResource ColorToSolidColorBrushConverter}}" BorderThickness="0"
+                                                CornerRadius="3"/>
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
@@ -58,18 +54,28 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Row="0">
-            <Image Source="/Images/smartdevicev2.png" Width="64" Height="64" Margin="4"/>
+        <RelativePanel HorizontalAlignment="Left" Grid.Row="0">
+            <Image Source="/Images/smartdevicev2.png" Width="64" Height="64" Margin="4,4,12,4"
+                   x:Name="DeviceIcon"/>
 
-            <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="8,0,0,0">
-                <TextBlock Style="{StaticResource NewTitleTextBlockStyle}" Text="{x:Bind ViewModel.Name}"/>
-                <TextBlock Text="{x:Bind ViewModel.RawName}" Opacity="0.2"/>
-            </StackPanel>
-        </StackPanel>
+            <TextBlock Style="{StaticResource NewTitleTextBlockStyle}" Text="{x:Bind ViewModel.Name}" 
+                       x:Name="DeviceTitle" RelativePanel.RightOf="DeviceIcon"/>
+            <TextBlock Text="{x:Bind ViewModel.RawName}" Opacity="0.2" x:Name="DeviceRealName"
+                       RelativePanel.Below="DeviceTitle" RelativePanel.AlignLeftWith="DeviceTitle"/>
 
-        <NavigationView PaneDisplayMode="Top" IsBackButtonVisible="Collapsed" Grid.Row="1">
+            <Button Content="..." RelativePanel.RightOf="DeviceTitle" Margin="8,4,0,0">
+                <Button.Flyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Refresh" Command="{x:Bind ViewModel.FindDeviceCommand}" />
+                    </MenuFlyout>
+                </Button.Flyout>
+            </Button>
+        </RelativePanel>
+
+
+        <NavigationView PaneDisplayMode="Top" IsBackButtonVisible="Collapsed" Grid.Row="1" IsSettingsVisible="False">
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Channel 1" x:Name="Channel1" IsSelected="True"/>
+                <NavigationViewItem Content="All Channels" IsSelected="True"/>
             </NavigationView.MenuItems>
             <Frame BorderBrush="{StaticResource FakeMicaBorderBrush}" BorderThickness="1"
                    Background="{StaticResource FakeMicaFillBrush}" CornerRadius="8,0,0,0"
@@ -79,16 +85,17 @@
                         <TextBlock Text="Accessories" Margin="0,8,0,8" Style="{StaticResource NewBodyStrongTextBlockStyle}"/>
 
                         <GridView HorizontalAlignment="Stretch"
-                                    ItemsSource="{x:Bind ViewModel.Accessories}"
-                                    ItemTemplate="{StaticResource AccessoryListViewTemplate}"
-                                    SelectionMode="None" HorizontalContentAlignment="Stretch"/>
+                                  ItemsSource="{x:Bind ViewModel.Accessories}"
+                                  ItemTemplate="{StaticResource AccessoryListViewTemplate}"
+                                  SelectionMode="None" HorizontalContentAlignment="Stretch"/>
 
-                        <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Width="40" Height="40"/>
+                        <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Width="24" Height="24"/>
 
                         <TextBlock Text="Effect Settings" Style="{StaticResource NewBodyStrongTextBlockStyle}" Margin="0,0,0,8"/>
 
                         <controls:DropShadowPanel BlurRadius="8" ShadowOpacity="0.1" OffsetX="0" OffsetY="4"
-                                                  Color="#E9E9E9" IsMasked="True" HorizontalContentAlignment="Stretch">
+                                                  Color="{StaticResource CardShadowColor}" 
+                                                  IsMasked="True" HorizontalContentAlignment="Stretch">
                             <Border CornerRadius="8" Background="{StaticResource CardBackgroundBrush}"
                                     BorderThickness="1" BorderBrush="{StaticResource FakeMicaBorderBrush}"
                                     HorizontalAlignment="Stretch">
@@ -96,19 +103,20 @@
                                     <Grid Height="64" Padding="16">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE706;" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Effect Mode" Margin="8,0,0,0"/>
+                                            <TextBlock Text="Effect Mode" Margin="12,0,0,0"/>
                                         </StackPanel>
 
                                         <ComboBox ItemsSource="{x:Bind ViewModel.EffectModes}"
                                                   SelectedItem="{x:Bind ViewModel.SelectedEffectMode, Mode=TwoWay}"
                                                   MinWidth="170" DisplayMemberPath="Name"
-                                                  HorizontalAlignment="Right"/>
+                                                  HorizontalAlignment="Right" IsEnabled="{x:Bind ViewModel.HasAccessories, Mode=OneWay}"/>
                                     </Grid>
 
                                     <ContentControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                                                     VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                                     Content="{x:Bind ViewModel.SelectedEffectMode, Mode=OneWay}"
-                                                    ContentTemplate="{x:Bind ViewModel.SelectedEffectMode, Mode=OneWay, Converter={StaticResource ImplicitDataTemplateConverter}}"/>
+                                                    ContentTemplate="{x:Bind ViewModel.SelectedEffectMode, Mode=OneWay, Converter={StaticResource ImplicitDataTemplateConverter}}"
+                                                    IsEnabled="{x:Bind ViewModel.HasAccessories, Mode=OneWay}"/>
                                 </StackPanel>
                             </Border>
                         </controls:DropShadowPanel>

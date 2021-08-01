@@ -31,10 +31,12 @@ namespace FluentNzxt.ViewModel
         public IEffectModeViewModel SelectedEffectMode
         {
             get => _selectedEffectMode;
-            set
-            {
-                SetProperty(ref _selectedEffectMode, value);
-            }
+            set => SetProperty(ref _selectedEffectMode, value);
+        }
+
+        public bool HasAccessories
+        {
+            get { return Accessories.Count > 0 && !IsLoading; }
         }
 
         public string Name => _model.Name;
@@ -48,6 +50,7 @@ namespace FluentNzxt.ViewModel
             {
                 SetProperty(ref _isLoading, value);
                 ApplyCommand.NotifyCanExecuteChanged();
+                OnPropertyChanged(nameof(HasAccessories));
             }
         }
 
@@ -57,19 +60,20 @@ namespace FluentNzxt.ViewModel
 
             EffectModes = _model.EffectModes.Select(mode =>
             {
-                if (mode.MaxColors > 1)
-                    return new MultiColorEffectModeViewModel(mode) as IEffectModeViewModel;
-                else
-                    return new FixedColorEffectModeViewModel(mode) as IEffectModeViewModel;
+                return mode.MaxColors > 1
+                    ? new MultiColorEffectModeViewModel(mode) as IEffectModeViewModel
+                    : new FixedColorEffectModeViewModel(mode) as IEffectModeViewModel;
             }).ToList();
 
             SelectedEffectMode = EffectModes.First(m => m.Name == "Fixed");
 
-            ApplyCommand = new AsyncRelayCommand(SetDeviceModeAndColor, () => !IsLoading);
+            ApplyCommand = new AsyncRelayCommand(SetDeviceModeAndColor,
+                () => !IsLoading && HasAccessories);
+
             FindDeviceCommand = new AsyncRelayCommand(FindDevice);
         }
 
-        public async Task FindDevice()
+        private async Task FindDevice()
         {
             IsLoading = true;
 

@@ -53,6 +53,11 @@ namespace NzxtLib
 
         public async Task<bool> FindDevice()
         {
+            if (_device != null)
+            {
+                _device.Dispose();
+            }
+
             string selector = "System.Devices.InterfaceClassGuid:=\"{4D1E55B2-F16F-11CF-88CB-001111000030}\" AND " +
                               "System.Devices.InterfaceEnabled:=System.StructuredQueryType.Boolean#True AND " +
                               $"System.DeviceInterface.Hid.VendorId:={NZXTVendorId} AND " +
@@ -143,7 +148,7 @@ namespace NzxtLib
 
                     try
                     {
-                        accessories.Add(Hue2Accessory.GetAccessoryFromId(accessoryId, i));
+                        accessories.Add(Hue2Accessory.GetAccessoryFromId(accessoryId, i + 1));
                     }
                     catch (ArgumentException ex)
                     {
