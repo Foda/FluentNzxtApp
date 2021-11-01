@@ -20,19 +20,22 @@ namespace NzxtLib
         private const int DEVICE_BUFFER_SIZE = 64;
         private const int HUE2_MAX_ACCESSORIES_IN_CHANNEL = 6;
         private const int MAX_EFFECT_COLORS = 8;
-        private const int NZXTVendorId = 7793;
-        private const int SmartDeviceV2ProductId = 8198;
 
         private HidDevice _device;
         public HidDevice Device => _device;
 
         public string Name => "Smart Device v2";
         public string RawName { get; private set; }
+        public static int[] ProductIds => new int[2]
+        {
+            8198, // v2.0
+            8205  // v2.1
+        };
 
         public List<INzxtAccessory> LedAccessories { get; private set; }
 
         /// <summary>
-        /// mval | mod3 | moving flag
+        /// mval | mod3 | moving flag | Min Color | Max Colors | Min Speed | Max Speed
         /// </summary>
         private List<Hue2EffectMode> _effectModes = new()
         {
@@ -40,14 +43,20 @@ namespace NzxtLib
             new Hue2EffectMode("Fixed",         new byte[3] { 0x00, 0x00, 0x00 }, 1, 1, -1, -1),
             new Hue2EffectMode("Fading",        new byte[3] { 0x01, 0x00, 0x00 }, 1, 8, 0, 4),
             new Hue2EffectMode("Spectrum Wave", new byte[3] { 0x02, 0x00, 0x00 }, 0, 0, 0, 4),
+            new Hue2EffectMode("Marquee",       new byte[3] { 0x03, 0x00, 0x00 }, 1, 1, 0, 4),
+            new Hue2EffectMode("Cover Marquee", new byte[3] { 0x04, 0x00, 0x00 }, 1, 8, 0, 4),
+            new Hue2EffectMode("Alternating",   new byte[3] { 0x05, 0x00, 0x00 }, 1, 2, 0, 4),
             new Hue2EffectMode("Pulse",         new byte[3] { 0x06, 0x00, 0x00 }, 1, 8, 0, 4),
             new Hue2EffectMode("Breathing",     new byte[3] { 0x07, 0x00, 0x00 }, 1, 8, 0, 4),
         };
 
         public List<Hue2EffectMode> EffectModes => _effectModes;
 
-        public SmartDevice()
+        private DeviceInformation _deviceInfo;
+
+        public SmartDevice(DeviceInformation deviceInfo)
         {
+            _deviceInfo = deviceInfo;
             LedAccessories = new List<INzxtAccessory>();
         }
 
@@ -58,19 +67,9 @@ namespace NzxtLib
                 _device.Dispose();
             }
 
-            string selector = "System.Devices.InterfaceClassGuid:=\"{4D1E55B2-F16F-11CF-88CB-001111000030}\" AND " +
-                              "System.Devices.InterfaceEnabled:=System.StructuredQueryType.Boolean#True AND " +
-                              $"System.DeviceInterface.Hid.VendorId:={NZXTVendorId} AND " +
-                              $"System.DeviceInterface.Hid.ProductId:={SmartDeviceV2ProductId}";
+            RawName = _deviceInfo.Name;
 
-            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(selector);
-
-            if (devices.Count == 0)
-                return false;
-
-            RawName = devices[0].Name;
-
-            _device = await HidDevice.FromIdAsync(devices[0].Id, FileAccessMode.ReadWrite);
+            _device = await HidDevice.FromIdAsync(_deviceInfo.Id, FileAccessMode.ReadWrite);
 
             if (_device != null)
             {
@@ -109,7 +108,7 @@ namespace NzxtLib
                 List<INzxtAccessory> items = ParseChannelAccessories(data);
                 if (items.Any() || sw.ElapsedMilliseconds > 6000)
                 {
-                    // If 2 seconds pass without a result, just return an empty list
+                    // If 6 seconds pass without a result, just return an empty list
                     getAccessories.SetResult(items);
                     _device.InputReportReceived -= reportEvent;
                 }
@@ -164,11 +163,10 @@ namespace NzxtLib
         {
             try
             {
-                HidOutputReport outReport = _device.CreateOutputReport();
-
-                DataWriter dataWriter = new DataWriter();
+                DataWriter dataWriter = new();
                 dataWriter.WriteBytes(buffer);
 
+                HidOutputReport outReport = _device.CreateOutputReport();
                 outReport.Data = dataWriter.DetachBuffer();
 
                 await _device.SendOutputReportAsync(outReport);
@@ -211,7 +209,8 @@ namespace NzxtLib
                     $"Invalid colors count for effect '{effect.Name}'. Must be greater than {effect.MinColors} and less than {effect.MaxColors}");
             }
 
-            for (int channel = 0; channel < ChannelCount; channel++)
+            // Channels begin at 1
+            for (int channel = 1; channel <= ChannelCount; channel++)
             {
                 // Only write to the channel if there's an accessory on it
                 if (!LedAccessories.Any(accessory => accessory.Channel == channel))
@@ -223,7 +222,7 @@ namespace NzxtLib
                 byte[] toWrite = new byte[DEVICE_BUFFER_SIZE];
                 toWrite[0x00] = 0x28;
                 toWrite[0x01] = 0x03;
-                toWrite[0x02] = (byte)(channel + 1);   // channel id
+                toWrite[0x02] = (byte)(channel);   // channel id
                 toWrite[0x03] = 0x28;      // ???
 
                 // Effect mode
@@ -249,11 +248,7 @@ namespace NzxtLib
                     toWrite[pixelIdx + 0x02] = colors[i].B;
                 }
 
-                bool result = await WriteToDevice(toWrite);
-                if (!result)
-                {
-                    return false;
-                }
+                return await WriteToDevice(toWrite);
             }
 
             return true;

@@ -15,6 +15,7 @@ namespace NzxtLib
                 0x04 => new Hue2Accessory("Hue 2 LED Strip 300 mm", 0x04, 10, channel),
                 0x05 => new Hue2Accessory("Hue 2 LED Strip 250 mm", 0x05, 8, channel),
                 0x06 => new Hue2Accessory("Hue 2 LED Strip 200 mm", 0x06, 6, channel),
+                0x09 => new Hue2Accessory("Hue 2 Underglow 300 mm", 0x09, 15, channel),
                 0x0A => new Hue2Accessory("Hue 2 Underglow 200 mm", 0x0A, 10, channel),
                 0x0B => new Hue2Accessory("Aer 2 fan 120 mm", 0x0B, 8, channel),
                 0x0C => new Hue2Accessory("Aer 2 fan 140 mm", 0x0C, 8, channel),

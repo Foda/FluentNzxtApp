@@ -10,11 +10,11 @@ namespace FluentNzxt.View
     public sealed partial class DeviceView : UserControl
     {
         public static readonly DependencyProperty ViewModelProperty = DependencyProperty
-               .Register(nameof(ViewModel), typeof(SmartDeviceViewModel), typeof(DeviceView), new PropertyMetadata(null));
+               .Register(nameof(ViewModel), typeof(IDeviceViewModel), typeof(DeviceView), new PropertyMetadata(null));
 
-        public SmartDeviceViewModel ViewModel
+        public IDeviceViewModel ViewModel
         {
-            get => (SmartDeviceViewModel)GetValue(ViewModelProperty);
+            get => (IDeviceViewModel)GetValue(ViewModelProperty);
             set => SetValue(ViewModelProperty, value);
         }
 

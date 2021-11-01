@@ -67,10 +67,14 @@
                 </StackPanel>
             </StackPanel>
 
-            <Slider Minimum="{x:Bind ViewModel.MinSpeed, Mode=OneWay}"
-                    Maximum="{x:Bind ViewModel.MaxSpeed, Mode=OneWay}"
-                    MinWidth="170" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Value="{x:Bind ViewModel.Speed, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="&#x1F422;" FontFamily="Segoe UI Emoji"  VerticalAlignment="Center"/>
+                <Slider Minimum="{x:Bind ViewModel.MinSpeed, Mode=OneWay}"
+                        Maximum="{x:Bind ViewModel.MaxSpeed, Mode=OneWay}"
+                        Value="{x:Bind ViewModel.Speed, Mode=TwoWay}"
+                        MinWidth="170" VerticalAlignment="Center" Margin="2,0,2,0"/>
+                <TextBlock Text="&#x1F407;" FontFamily="Segoe UI Emoji"  VerticalAlignment="Center"/>
+            </StackPanel>
         </Grid>
     </StackPanel>
 </UserControl>

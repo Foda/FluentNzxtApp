@@ -9,6 +9,7 @@ namespace NzxtLib
 {
     public interface INzxtDevice
     {
+        static int ProductId { get; }
         Task<bool> FindDevice();
         List<INzxtAccessory> LedAccessories { get; }
         List<Hue2EffectMode> EffectModes { get; }

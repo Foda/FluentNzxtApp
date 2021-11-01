@@ -1,24 +1,22 @@
 ﻿using Microsoft.Toolkit.Mvvm.ComponentModel;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FluentNzxt.ViewModel
 {
     public class MainWindowViewModel : ObservableObject
     {
-        private SmartDeviceViewModel _selectedDevice;
-        public SmartDeviceViewModel SelectedDevice
+        private IDeviceViewModel _selectedDevice;
+        public IDeviceViewModel SelectedDevice
         {
             get => _selectedDevice;
             set => SetProperty(ref _selectedDevice, value);
         }
 
-        private ObservableCollection<SmartDeviceViewModel> _devices = new();
-        public ObservableCollection<SmartDeviceViewModel> Devices
+        private ObservableCollection<IDeviceViewModel> _devices = new();
+        public ObservableCollection<IDeviceViewModel> Devices
         {
             get => _devices;
             private set => SetProperty(ref _devices, value);
@@ -26,18 +24,18 @@ namespace FluentNzxt.ViewModel
 
         public MainWindowViewModel()
         {
-            PropertyChanged += async (s, e) =>
+        }
+
+        public async Task FindDevices()
+        {
+            List<IDeviceViewModel> devices = await DeviceFinder.FindDevices();
+            foreach (IDeviceViewModel device in devices)
             {
-                if (e.PropertyName == nameof(SelectedDevice))
-                {
-                    await SelectedDevice.FindDeviceCommand.ExecuteAsync(null);
-                }
-            };
+                Devices.Add(device);
+            }
 
-            SmartDeviceViewModel device = new SmartDeviceViewModel(new NzxtLib.SmartDevice());
-            Devices.Add(device);
-
-            SelectedDevice = device;
+            SelectedDevice = Devices.FirstOrDefault();
+            await SelectedDevice.FindDeviceCommand.ExecuteAsync(null);
         }
     }
 }

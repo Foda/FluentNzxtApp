@@ -11,8 +11,13 @@ namespace FluentNzxt
         public MainWindow()
         {
             this.InitializeComponent();
-
+            this.RootGrid.Loaded += RootGrid_Loaded;
             ViewModel = new MainWindowViewModel();
+        }
+
+        private async void RootGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            await ViewModel.FindDevices();
         }
     }
 }
