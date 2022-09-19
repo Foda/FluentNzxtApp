@@ -39,15 +39,15 @@ namespace NzxtLib
         /// </summary>
         private List<Hue2EffectMode> _effectModes = new()
         {
-            new Hue2EffectMode("Off",           new byte[3] { 0x00, 0x00, 0x00 }, 0, 0, -1, -1),
-            new Hue2EffectMode("Fixed",         new byte[3] { 0x00, 0x00, 0x00 }, 1, 1, -1, -1),
-            new Hue2EffectMode("Fading",        new byte[3] { 0x01, 0x00, 0x00 }, 1, 8, 0, 4),
-            new Hue2EffectMode("Spectrum Wave", new byte[3] { 0x02, 0x00, 0x00 }, 0, 0, 0, 4),
-            new Hue2EffectMode("Marquee",       new byte[3] { 0x03, 0x00, 0x00 }, 1, 1, 0, 4),
-            new Hue2EffectMode("Cover Marquee", new byte[3] { 0x04, 0x00, 0x00 }, 1, 8, 0, 4),
-            new Hue2EffectMode("Alternating",   new byte[3] { 0x05, 0x00, 0x00 }, 1, 2, 0, 4),
-            new Hue2EffectMode("Pulse",         new byte[3] { 0x06, 0x00, 0x00 }, 1, 8, 0, 4),
-            new Hue2EffectMode("Breathing",     new byte[3] { 0x07, 0x00, 0x00 }, 1, 8, 0, 4),
+            new Hue2EffectMode("Off",           new byte[3] { 0x00, 0x00, 0x00 }, minColors: 0, maxColors: 0, minSpeed: -1, maxSpeed: -1),
+            new Hue2EffectMode("Fixed",         new byte[3] { 0x00, 0x00, 0x00 }, minColors: 1, maxColors: 1, minSpeed: -1, maxSpeed: -1),
+            new Hue2EffectMode("Fading",        new byte[3] { 0x01, 0x00, 0x00 }, minColors: 1, maxColors: 8, minSpeed: 0,  maxSpeed: 4),
+            new Hue2EffectMode("Spectrum Wave", new byte[3] { 0x02, 0x00, 0x00 }, minColors: 0, maxColors: 0, minSpeed: 0,  maxSpeed: 4),
+            new Hue2EffectMode("Marquee",       new byte[3] { 0x03, 0x00, 0x00 }, minColors: 1, maxColors: 1, minSpeed: 0,  maxSpeed: 4),
+            new Hue2EffectMode("Cover Marquee", new byte[3] { 0x04, 0x00, 0x00 }, minColors: 1, maxColors: 8, minSpeed: 0,  maxSpeed: 4),
+            new Hue2EffectMode("Alternating",   new byte[3] { 0x05, 0x00, 0x00 }, minColors: 1, maxColors: 2, minSpeed: 0,  maxSpeed: 4),
+            new Hue2EffectMode("Pulse",         new byte[3] { 0x06, 0x00, 0x00 }, minColors: 1, maxColors: 8, minSpeed: 0,  maxSpeed: 4),
+            new Hue2EffectMode("Breathing",     new byte[3] { 0x07, 0x00, 0x00 }, minColors: 1, maxColors: 8, minSpeed: 0,  maxSpeed: 4),
         };
 
         public List<Hue2EffectMode> EffectModes => _effectModes;
