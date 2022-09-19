@@ -7,39 +7,58 @@
     xmlns:view="using:FluentNzxt.View"
     mc:Ignorable="d">
 
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-          x:Name="RootGrid" Background="{StaticResource AppBackground}" Padding="24,24,0,0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+    
+        <Grid x:Name="AppTitleBar">
+            <Image Source="Images/StoreLogo.png"
+                   HorizontalAlignment="Left" 
+                   Width="16" Height="16" 
+                   Margin="8,0"/>
+            <TextBlock x:Name="AppTitleTextBlock" Text="Fluent NZXT"
+                       TextWrapping="NoWrap"
+                       Style="{StaticResource CaptionTextBlockStyle}" 
+                       VerticalAlignment="Center"
+                       Margin="28,0,0,0"/>
+        </Grid>
 
-        <TextBlock Text="Devices" FontFamily="Segoe UI Variable Text"
-                   Style="{StaticResource NewBodyStrongTextBlockStyle}"
-                   Grid.Column="0"/>
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="RootGrid" Padding="24,24,0,0"
+              Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <ListView HorizontalContentAlignment="Stretch" Grid.Column="0"
-                  ItemsSource="{x:Bind ViewModel.Devices}" Margin="0,24,0,0"
-                  SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock x:Name="TitleText"
-                               Style="{StaticResource BodyTextBlockStyle}"
-                               TextLineBounds="TrimToCapHeight"
-                               TextWrapping="NoWrap">
-                        <Run Text="&#xE781;" FontFamily="Segoe Fluent Icons"/> <Run Text="{Binding Name}" FontFamily="Segoe UI Variable Text"/>
-                    </TextBlock>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-        </ListView>
+            <TextBlock Text="Devices" FontFamily="Segoe UI Variable Text"
+                       Style="{StaticResource NewBodyStrongTextBlockStyle}"
+                       Grid.Column="0"/>
 
-        <view:DeviceView x:Name="DeviceView" HorizontalAlignment="Stretch"
-                         Grid.Column="1" Margin="8,24,0,0"
-                         ViewModel="{x:Bind ViewModel.SelectedDevice, Mode=OneWay}"/>
+            <ListView HorizontalContentAlignment="Stretch" Grid.Column="0"
+                      ItemsSource="{x:Bind ViewModel.Devices}" Margin="16,24,0,0"
+                      SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock x:Name="TitleText"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   TextLineBounds="TrimToCapHeight"
+                                   TextWrapping="NoWrap">
+                            <Run Text="&#xE781;" FontFamily="Segoe Fluent Icons"/> <Run Text="{Binding Name}" FontFamily="Segoe UI Variable Text"/>
+                        </TextBlock>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+
+            <view:DeviceView x:Name="DeviceView" HorizontalAlignment="Stretch"
+                             Grid.Column="1" Margin="8,24,0,0"
+                             ViewModel="{x:Bind ViewModel.SelectedDevice, Mode=OneWay}"/>
+        </Grid>
     </Grid>
 </Window>

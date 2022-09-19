@@ -18,25 +18,11 @@ namespace FluentNzxt.ViewModel
         public IAsyncRelayCommand ApplyCommand { get; }
         public IAsyncRelayCommand FindDeviceCommand { get; }
 
-        private ObservableCollection<Hue2AccessoryViewModel> _accessories = new();
-        public ObservableCollection<Hue2AccessoryViewModel> Accessories
+        private ObservableCollection<IChannelViewModel> _channels = new();
+        public ObservableCollection<IChannelViewModel> Channels
         {
-            get => _accessories;
-            private set => SetProperty(ref _accessories, value);
-        }
-
-        public List<IEffectModeViewModel> EffectModes { get; }
-
-        private IEffectModeViewModel _selectedEffectMode;
-        public IEffectModeViewModel SelectedEffectMode
-        {
-            get => _selectedEffectMode;
-            set => SetProperty(ref _selectedEffectMode, value);
-        }
-
-        public bool HasAccessories
-        {
-            get { return Accessories.Count > 0 && !IsLoading; }
+            get => _channels;
+            private set => SetProperty(ref _channels, value);
         }
 
         public string Name => _model.Name;
@@ -50,57 +36,47 @@ namespace FluentNzxt.ViewModel
             {
                 SetProperty(ref _isLoading, value);
                 ApplyCommand.NotifyCanExecuteChanged();
-                OnPropertyChanged(nameof(HasAccessories));
             }
         }
 
         public SmartDeviceViewModel(SmartDevice model)
         {
             _model = model;
-
-            EffectModes = _model.EffectModes.Select(mode =>
-            {
-                return mode.MaxColors > 1
-                    ? new MultiColorEffectModeViewModel(mode) as IEffectModeViewModel
-                    : new FixedColorEffectModeViewModel(mode) as IEffectModeViewModel;
-            }).ToList();
-
-            SelectedEffectMode = EffectModes.First(m => m.Name == "Fixed");
-
-            ApplyCommand = new AsyncRelayCommand(SetDeviceModeAndColor,
-                () => !IsLoading && HasAccessories);
-
             FindDeviceCommand = new AsyncRelayCommand(FindDevice);
+            ApplyCommand = new AsyncRelayCommand(Apply, () => !IsLoading);
         }
 
         private async Task FindDevice()
         {
             IsLoading = true;
 
-            Accessories.Clear();
+            Channels.Clear();
 
             bool didFind = await _model.FindDevice();
             if (didFind)
             {
                 foreach (INzxtAccessory accessory in _model.LedAccessories)
                 {
-                    Accessories.Add(new Hue2AccessoryViewModel(accessory));
+                    Hue2AccessoryViewModel newAccessory = new Hue2AccessoryViewModel(accessory);
+
+                    IChannelViewModel channel = Channels.FirstOrDefault(c => c.Channel == newAccessory.Channel);
+                    if (channel == null)
+                    {
+                        channel = new ChannelViewModel(_model, newAccessory.Channel);
+                        Channels.Add(channel);
+                    }
+                    channel.AddAccessory(newAccessory);
                 }
             }
 
             IsLoading = false;
         }
 
-        private async Task SetDeviceModeAndColor()
+        private async Task Apply()
         {
-            bool didApply = await _model.Apply(SelectedEffectMode.GetColors(), SelectedEffectMode.Model);
-
-            if (didApply)
+            foreach (IChannelViewModel channelViewModel in Channels)
             {
-                foreach (Hue2AccessoryViewModel accessory in Accessories)
-                {
-                    accessory.SetColor(SelectedEffectMode.GetColors().FirstOrDefault());
-                }
+                await channelViewModel.ApplyChangesToDevice();
             }
         }
     }

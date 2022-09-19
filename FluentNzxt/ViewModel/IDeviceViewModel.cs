@@ -11,17 +11,13 @@ namespace FluentNzxt.ViewModel
 {
     public interface IDeviceViewModel : INotifyPropertyChanged
     {
-        IAsyncRelayCommand ApplyCommand { get; }
         IAsyncRelayCommand FindDeviceCommand { get; }
-        List<IEffectModeViewModel> EffectModes { get; }
-        IEffectModeViewModel SelectedEffectMode { get; set; }
-        bool HasAccessories { get; }
+
         string Name { get; }
         string RawName { get; }
         bool IsLoading { get; }
 
-        // TODO: fix
-        ObservableCollection<Hue2AccessoryViewModel> Accessories { get; }
-
+        ObservableCollection<IChannelViewModel> Channels { get; }
+        IAsyncRelayCommand ApplyCommand { get; }
     }
 }

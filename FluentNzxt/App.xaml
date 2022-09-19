@@ -33,6 +33,9 @@
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
+            <SolidColorBrush x:Key="WindowCaptionBackground">Transparent</SolidColorBrush>
+            <SolidColorBrush x:Key="WindowCaptionBackgroundDisabled">Transparent</SolidColorBrush>
+
             <Style x:Key="NewBodyStrongTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
                 <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
                 <Setter Property="FontSize" Value="14" />
@@ -68,11 +71,11 @@
             <converters:ImplicitDataTemplateConverter x:Key="ImplicitDataTemplateConverter" />
 
             <DataTemplate x:Key="FixedColorEffectModeViewModel">
-                <view:FixedColorEffectModeView ViewModel="{Binding}"/>
+                <view:FixedColorEffectModeView ViewModel="{Binding Mode=OneWay}"/>
             </DataTemplate>
 
             <DataTemplate x:Key="MultiColorEffectModeViewModel">
-                <view:MultiColorEffectModeView ViewModel="{Binding}"/>
+                <view:MultiColorEffectModeView ViewModel="{Binding Mode=OneWay}"/>
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
